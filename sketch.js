@@ -1,249 +1,171 @@
-/*
-  A2 Starter Runner (Shapes Only) — p5.js
-  -------------------------------------------------------
-  PURPOSE
-  - This is a clean, demo-ready runner prototype for your A2 repo.
-  - It uses ONLY shapes (rectangles/lines), no images or sound.
-  - It includes a simple but complete “one level” loop:
-      Start Screen -> Play -> Lose Screen -> Restart
-  - It is intentionally NOT modified for BPD yet (your request).
-
-  FILE EXPECTATION
-  - Save this code as: sketch.js
-  - Ensure index.html loads p5.js (CDN or local) + this sketch.js
-
-  CONTROLS
-  - ENTER: Start game (from start screen)
-  - SPACE: Jump (during play)
-  - R: Restart (after game over)
-
-  TEAM EXTENSIONS (later)
-  - Add a second mechanic (e.g., pickups, stamina, dash, etc.)
-  - Add win condition (survive X seconds) if desired
-  - Modularize into player.js / obstacles.js / ui.js if needed
-*/
-
-// ----------------------
-// CANVAS + WORLD SETTINGS
-// ----------------------
-
-// Canvas size (matches your earlier runner)
-const CANVAS_W = 700;
-const CANVAS_H = 300;
-
-// Ground line position
-// We'll treat this as the top surface where the player's feet rest.
-const GROUND_TOP_Y = 230;
-
-// Physics
-const GRAVITY = 1.0; // pulls player down each frame
-const JUMP_VELOCITY = -14; // negative = up
-
-// Obstacle system
-const OBSTACLE_SPAWN_FRAMES = 90; // spawn one obstacle every ~90 frames
-const OBSTACLE_SPEED = 6; // how fast obstacles move left
-
-// ----------------------
-// GAME STATE (SCREENS)
-// ----------------------
-
-// We use a simple “state machine” so the game has clean screens:
-// "start" -> "play" -> "lose"
+// Controls which screen is currently shown: start, play, or lose
 let state = "start";
 
-// ----------------------
-// GAME OBJECTS / VARIABLES
-// ----------------------
-
-// Player object (a rectangle)
+// Player object
 let player;
 
-// Obstacles: an array of rectangles that move left
-let obstacles = [];
+// Array that stores all spike obstacles
+let spikes = [];
 
-// Score counts up while playing (we display a simplified score)
+// Player score
 let score = 0;
 
-// ----------------------
-// p5.js: setup()
-// Runs once at the start
-// ----------------------
-function setup() {
-  createCanvas(CANVAS_W, CANVAS_H);
+// Anxiety intensity mechanic (scales difficulty)
+let intensity = 0;
 
-  // Initialize all game objects
+// Tracks how many successful jumps in a row
+let streak = 0;
+
+// Boost mechanic variables
+let boostActive = false;
+let boostTimer = 0;
+
+// Mistake tracking for shake mechanic
+let misses = 0;
+let shakeActive = false;
+let shakeSuccess = 0;
+
+// Prevents multiple collision triggers in quick succession
+let hitCooldown = 0;
+
+// Ground position
+const GROUND = 230;
+
+// Maximum allowed anxiety intensity
+const MAX_INTENSITY = 100;
+
+// How long boost lasts (in frames)
+const BOOST_DURATION = 200;
+
+// Runs once when the sketch starts
+function setup() {
+  createCanvas(700, 300);
   resetGame();
 }
 
-// ----------------------
-// Reset the game to a fresh run
-// Called on setup() and restart
-// ----------------------
+// Resets all variables to starting values
 function resetGame() {
-  // Player starts near the left side, standing on the ground.
+  // Player starting properties
   player = {
     x: 90,
-    y: GROUND_TOP_Y, // this is the TOP of the player rectangle
+    y: GROUND,
     w: 40,
     h: 40,
     vy: 0, // vertical velocity
-    onGround: true, // used to prevent double-jumps
+    onGround: true, // whether player is touching the ground
   };
 
-  // Clear obstacles + reset score
-  obstacles = [];
+  spikes = [];
   score = 0;
+  intensity = 0;
 
-  // Note:
-  // We do NOT change `state` here. That allows resetGame()
-  // to be reused for restarts (where the caller sets the state).
+  // Boost system reset
+  streak = 0;
+  boostActive = false;
+  boostTimer = 0;
+
+  // Shake system reset
+  misses = 0;
+  shakeActive = false;
+  shakeSuccess = 0;
+
+  // Collision cooldown reset
+  hitCooldown = 0;
 }
 
-// ----------------------
-// p5.js: draw()
-// Runs every frame (~60 fps)
-// ----------------------
 function draw() {
-  // Background each frame so the canvas redraws cleanly
+  // Background color
   background(245);
 
-  // Ground always visible (all screens)
-  drawGround();
+  // Draw ground line
+  stroke(40);
+  line(0, GROUND + player.h, width, GROUND + player.h);
 
-  // Decide what to do based on state
   if (state === "start") {
-    drawStartScreen();
-    // show player as a preview
+    textAlign(CENTER);
+    textSize(24);
+    text("Press ENTER to Start", width / 2, height / 2);
+
     drawPlayer();
-    return; // do not run gameplay update logic
+    return;
   }
 
   if (state === "play") {
-    // Update world
+    // Gradually increase anxiety intensity over time
+    intensity += 0.04;
+    intensity = constrain(intensity, 0, MAX_INTENSITY);
+
+    // If shake mode is active, disable boost
+    if (shakeActive) {
+      boostActive = false;
+      boostTimer = 0;
+    }
+
+    // Handle boost countdown
+    if (boostActive) {
+      boostTimer--;
+      if (boostTimer <= 0) {
+        boostActive = false;
+      }
+    }
+
+    // Reduce collision cooldown
+    if (hitCooldown > 0) hitCooldown--;
+
+    // Update game systems
     updatePlayer();
-    updateObstacles();
+    updateSpikes();
+    checkNearMiss();
+    checkScore();
+    checkCollision();
 
-    // Check for collisions (may switch state to "lose")
-    checkCollisions();
-
-    // Update score (only while playing)
-    score += 1;
-
-    // Draw world
+    // Draw HUD elements
     drawHUD();
-    drawPlayer();
-    drawObstacles();
 
-    return;
+    // Screen shake effect
+    push();
+    if (shakeActive) {
+      let shakeAmount = 4;
+
+      translate(
+        random(-shakeAmount, shakeAmount),
+        random(-shakeAmount, shakeAmount),
+      );
+    }
+
+    drawPlayer();
+    drawSpikes();
+
+    pop();
   }
 
   if (state === "lose") {
-    // Show the frozen scene (player + obstacles) and overlay GAME OVER
     drawPlayer();
-    drawObstacles();
-    drawLoseScreen();
-    return;
+    drawSpikes();
+
+    textAlign(CENTER);
+
+    textSize(28);
+    text("GAME OVER", width / 2, height / 2);
+
+    textSize(24);
+    text("Press R to Restart", width / 2, height / 2 + 30);
   }
 }
-
-// =======================================================
-// DRAWING HELPERS (visual only)
-// =======================================================
-
-function drawGround() {
-  // The ground “surface line”:
-  // The player stands on GROUND_TOP_Y.
-  stroke(40);
-  strokeWeight(2);
-
-  // Draw the ground line at the player's "feet level"
-  // player's y is the TOP of player, so feet = player.y + player.h
-  // We'll keep ground line consistent using GROUND_TOP_Y + player.h
-  line(0, GROUND_TOP_Y + player.h, width, GROUND_TOP_Y + player.h);
-
-  // Optional: simple dashed "road" line below the ground
-  strokeWeight(3);
-  for (let x = 0; x < width; x += 50) {
-    line(x, GROUND_TOP_Y + player.h + 20, x + 25, GROUND_TOP_Y + player.h + 20);
-  }
-}
-
-function drawPlayer() {
-  // Player is a rounded rectangle
-  noStroke();
-  fill(30, 120, 255); // blue
-
-  rect(player.x, player.y, player.w, player.h, 8);
-}
-
-function drawObstacles() {
-  // Obstacles are dark rounded rectangles
-  noStroke();
-  fill(30);
-
-  for (const o of obstacles) {
-    rect(o.x, o.y, o.w, o.h, 6);
-  }
-}
-
-function drawHUD() {
-  // Score display in top-left corner
-  noStroke();
-  fill(0);
-  textSize(14);
-  textAlign(LEFT, TOP);
-
-  // Score grows every frame, so divide by 10 to slow the visible increase
-  text(`Score: ${floor(score / 10)}`, 12, 12);
-}
-
-function drawStartScreen() {
-  // Start screen text + instructions
-  noStroke();
-  fill(0);
-  textAlign(CENTER, CENTER);
-
-  textSize(26);
-  text("Runner Prototype", width / 2, height / 2 - 40);
-
-  textSize(14);
-  text("Press ENTER to start", width / 2, height / 2);
-  text("Press SPACE to jump", width / 2, height / 2 + 22);
-
-  // Small note: this is just the prototype scaffold
-  textSize(12);
-  text("(Shapes only — mechanics first)", width / 2, height / 2 + 48);
-}
-
-function drawLoseScreen() {
-  // Game over overlay text
-  noStroke();
-  fill(0);
-  textAlign(CENTER, CENTER);
-
-  textSize(26);
-  text("GAME OVER", width / 2, height / 2 - 20);
-
-  textSize(14);
-  text(`Final Score: ${floor(score / 10)}`, width / 2, height / 2 + 10);
-  text("Press R to restart", width / 2, height / 2 + 32);
-}
-
-// =======================================================
-// UPDATE LOGIC (movement, spawning, collisions)
-// =======================================================
 
 function updatePlayer() {
-  // Apply gravity every frame
-  player.vy += GRAVITY;
+  // Gravity increases slightly with intensity
+  let gravity = 1 + map(intensity, 0, MAX_INTENSITY, 0, 0.4);
 
-  // Apply velocity to position
+  // Apply gravity
+  player.vy += gravity;
+
+  // Apply velocity
   player.y += player.vy;
 
-  // Ground collision:
-  // If the player falls below the ground top, snap them back onto the ground.
-  if (player.y >= GROUND_TOP_Y) {
-    player.y = GROUND_TOP_Y;
+  // Ground collision
+  if (player.y >= GROUND) {
+    player.y = GROUND;
     player.vy = 0;
     player.onGround = true;
   } else {
@@ -251,102 +173,206 @@ function updatePlayer() {
   }
 }
 
-function updateObstacles() {
-  // Spawn obstacles at a fixed interval
-  // frameCount is a p5 variable that increments every draw() frame
-  if (frameCount % OBSTACLE_SPAWN_FRAMES === 0) {
-    spawnObstacle();
+function drawPlayer() {
+  noStroke();
+
+  // Player turns yellow when boost is active
+  if (boostActive) {
+    fill(255, 200, 0);
+  } else {
+    fill(30, 120, 255);
   }
 
-  // Move obstacles left each frame
-  for (const o of obstacles) {
-    o.x -= OBSTACLE_SPEED;
-  }
-
-  // Remove obstacles once they leave the screen
-  // (keeps array from growing forever)
-  obstacles = obstacles.filter((o) => o.x + o.w > 0);
+  rect(player.x, player.y, player.w, player.h, 8);
 }
 
-function spawnObstacle() {
-  // Randomize obstacle width/height slightly for variety
-  const w = random(22, 40);
-  const h = random(35, 70);
+function updateSpikes() {
+  // Spike speed increases with intensity
+  let speed = 7 + map(intensity, 0, MAX_INTENSITY, 0, 2);
 
-  // We want the obstacle to sit on the ground.
-  // Ground line is at (GROUND_TOP_Y + player.h).
-  // So obstacle top y should be: groundLineY - obstacleHeight.
-  const groundLineY = GROUND_TOP_Y + player.h;
+  // Shake mode increases difficulty
+  if (shakeActive) speed *= 1.25;
 
-  obstacles.push({
-    x: width + 20, // spawn off-screen right
-    y: groundLineY - h, // sit on the ground
+  // Spawn rate increases with intensity
+  let spawnRate = 70 - map(intensity, 0, MAX_INTENSITY, 0, 20);
+
+  // Spawn spikes periodically
+  if (frameCount % floor(spawnRate) === 0) spawnSpike();
+
+  // Move spikes
+  for (let s of spikes) s.x -= speed;
+
+  // Remove spikes that leave screen
+  spikes = spikes.filter((s) => s.x + s.w > 0);
+}
+
+function spawnSpike() {
+  let groundY = GROUND + player.h;
+
+  let h = random(40, 55);
+  let w = random(28, 40);
+
+  // Main spike
+  spikes.push({
+    x: width + 20,
+    y: groundY - h,
     w: w,
     h: h,
+    scored: false,
+    nearMiss: false,
   });
+
+  // Occasionally spawn a second spike
+  if (random() < 0.3) {
+    let h2 = h - random(10, 15);
+
+    spikes.push({
+      x: width + 20 + w,
+      y: groundY - h2,
+      w: w,
+      h: h2,
+      scored: false,
+      nearMiss: false,
+    });
+  }
 }
 
-function checkCollisions() {
-  // Check player against each obstacle
-  for (const o of obstacles) {
-    if (
-      rectsOverlap(player.x, player.y, player.w, player.h, o.x, o.y, o.w, o.h)
-    ) {
-      // Switch to lose screen
-      state = "lose";
+function drawSpikes() {
+  noStroke();
+  fill(40);
 
-      // Stop the draw loop so everything freezes on impact
-      // Restart will call loop() again.
-      noLoop();
+  for (let s of spikes) {
+    // Pulsing spike effect tied to intensity
+    let pulse = sin(frameCount * 0.1);
+    let scale = map(intensity, 0, MAX_INTENSITY, 0, 0.4);
+    let visualHeight = s.h * (1 + pulse * scale);
+
+    triangle(
+      s.x,
+      s.y + s.h,
+      s.x + s.w / 2,
+      s.y + s.h - visualHeight,
+      s.x + s.w,
+      s.y + s.h,
+    );
+  }
+}
+
+function checkCollision() {
+  if (hitCooldown > 0) return;
+
+  for (let s of spikes) {
+    let overlapX = player.x + player.w > s.x && player.x < s.x + s.w;
+
+    if (!overlapX) continue;
+
+    let playerFeet = player.y + player.h;
+
+    if (playerFeet > s.y + 8) {
+      s.scored = true;
+
+      // Register mistake
+      misses++;
+      hitCooldown = 15;
+
+      // Activate shake mode after 3 misses
+      if (!shakeActive && misses >= 3) {
+        shakeActive = true;
+        shakeSuccess = 0;
+      }
+
       return;
     }
   }
 }
 
-// Basic AABB (axis-aligned bounding box) collision detection
-// Works well for rectangles that are not rotated.
-function rectsOverlap(ax, ay, aw, ah, bx, by, bw, bh) {
-  return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+function checkScore() {
+  for (let s of spikes) {
+    if (!s.scored && s.x + s.w < player.x) {
+      score++;
+      s.scored = true;
+
+      // Recover from shake mode after 5 successes
+      if (shakeActive) {
+        shakeSuccess++;
+
+        if (shakeSuccess >= 5) {
+          shakeActive = false;
+          shakeSuccess = 0;
+          misses = 0;
+        }
+      }
+
+      // Boost mechanic
+      if (!shakeActive && !boostActive) {
+        streak++;
+
+        if (streak >= 5) {
+          boostActive = true;
+          boostTimer = BOOST_DURATION;
+          streak = 0;
+        }
+      }
+    }
+  }
 }
 
-// =======================================================
-// INPUT
-// =======================================================
+function checkNearMiss() {
+  for (let s of spikes) {
+    let closeX = s.x < player.x + player.w + 10 && s.x + s.w > player.x - 10;
+
+    let closeY = abs(player.y + player.h - s.y) < 10;
+
+    // Near miss increases intensity
+    if (closeX && closeY && !s.nearMiss) {
+      intensity += 10;
+      intensity = constrain(intensity, 0, MAX_INTENSITY);
+
+      s.nearMiss = true;
+    }
+  }
+}
+
+function drawHUD() {
+  fill(0);
+  textAlign(LEFT);
+
+  text("Score: " + score, 10, 20);
+
+  // Intensity bar background
+  fill(200);
+  rect(10, 30, 200, 12);
+
+  // Intensity level
+  fill(255, 80, 80);
+  rect(10, 30, map(intensity, 0, MAX_INTENSITY, 0, 200), 12);
+
+  // Status text
+  if (shakeActive) {
+    fill(0);
+    text("BOOST DEACTIVATED", 10, 70);
+  } else if (boostActive) {
+    fill(255, 200, 0);
+    text("BOOST ACTIVE!", 10, 70);
+  } else {
+    fill(0);
+    text("Streak: " + streak, 10, 70);
+  }
+}
 
 function keyPressed() {
-  // START SCREEN INPUT
-  if (state === "start") {
-    // Start the game
-    if (keyCode === ENTER) {
-      state = "play";
-      loop(); // ensure the loop is running
-    }
+  // Start game
+  if (state === "start" && keyCode === ENTER) state = "play";
 
-    // Optional: allow preview jump even on start screen
-    // (This helps players understand "SPACE jumps" immediately.)
-    if (key === " " && player.onGround) {
-      player.vy = JUMP_VELOCITY;
-    }
-
-    return;
+  // Jump
+  if (state === "play" && key === " " && player.onGround) {
+    let jumpPower = boostActive ? -20 : -14.2;
+    player.vy = jumpPower;
   }
 
-  // PLAY INPUT
-  if (state === "play") {
-    // Jump only if on the ground (prevents double jump)
-    if (key === " " && player.onGround) {
-      player.vy = JUMP_VELOCITY;
-    }
-    return;
-  }
-
-  // LOSE INPUT
-  if (state === "lose") {
-    // Restart on R
-    if (key === "r" || key === "R") {
-      resetGame();
-      state = "play";
-      loop(); // resume draw loop
-    }
+  // Restart game
+  if (state === "lose" && (key === "r" || key === "R")) {
+    resetGame();
+    state = "play";
   }
 }

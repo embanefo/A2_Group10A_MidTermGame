@@ -12,42 +12,25 @@ Group: 10A
 
 ## Description
 
-Briefly describe what your project does.  
-Explain what the user will see, how they can interact, and what inspired the design.
-
-Example:
-
-> This project lets users switch between shapes using keyboard inputs.  
-> It explores how visual feedback can communicate accessibility states.
+This project is similary to the Chrome dinosour game where users can use their keyboard to avoid obstcacles and earn points.
 
 ---
 
 ## Interaction Instructions
 
-Describe how to use or play your project.
-
-- How does the user start?
-- What controls or keys do they use?
-- Any important visual or audio feedback to watch for?
-
-Example:
-
-> Press `S` to switch shapes and `R` to reset the canvas.
+> Press the `ENTER` key to start the game
+> Press the `SPACEBAR` to jump and avoid obstacles
+> Press `R` to reset the game
 
 ---
 
 ## Assets
 
-List any images, sounds, or other files used in your assets/ folder.
-Include in-text citations for all assets that are not your own, and connect them to your reference list.
-
-Example:
-
-> - `assets/sound/beep.mp3` (created in GarageBand)
-> - `assets/image/background.png` (original artwork)
+N/A
 
 ---
 
 ## References
 
-Connect your in-text citations to the reference list along with additional sources that informed your design but were not directly cited. Provide all citations using the ACM reference format.
+[1]
+Falk Leichsenring, Nikolas Heim, Frank Leweke, Carsten Spitzer, Christiane Steinert, and Otto F. Kernberg. 2023. Borderline Personality Disorder. JAMA 329, 8 (February 2023), 670. DOI:https://doi.org/10.1001/jama.2023.0589

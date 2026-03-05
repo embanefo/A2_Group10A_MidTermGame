@@ -1,3 +1,17 @@
+<!--
+  index.html
+  ─────────────────────────────────────────────
+  Main entry point for the A2 Mid-Term Game.
+  Loads the CSS stylesheet, p5.js library, and
+  all game class files in order before the main
+  sketch.js. The p5 canvas is injected into
+  the #page container.
+
+  Script load order (important):
+    1. p5.js library
+    2. Game classes (Player, Spike, etc.)
+    3. Main sketch.js (uses classes + globals)
+-->
 <!doctype html>
 <html lang="en">
   <head>
@@ -6,17 +20,23 @@
     <title>A2 Mid-Term Game Prototype</title>
     <link rel="stylesheet" href="style.css" />
   </head>
-
   <body>
     <main id="page">
-      <!-- p5 will inject the canvas here -->
+      <!-- p5 injects the canvas here -->
     </main>
 
-    <body>
-    <!-- Load p5 first -->
+    <!-- p5.js library -->
     <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
 
-    <!-- Your game code -->
+    <!-- Game classes — load BEFORE sketch.js -->
+    <script src="Player.js"></script>
+    <script src="Spike.js"></script>
+    <script src="SpikeManager.js"></script>
+    <script src="Platform.js"></script>
+    <script src="PlatformManager.js"></script>
+    <script src="HUD.js"></script>
+
+    <!-- Main sketch last (defines global constants classes reference) -->
     <script src="sketch.js"></script>
   </body>
 </html>

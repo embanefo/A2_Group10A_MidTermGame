@@ -1,3 +1,11 @@
+/*
+  jsconfig.json
+  ─────────────────────────────────────────────
+  VS Code configuration for JavaScript project.
+  Enables ES6 syntax support and includes p5.js
+  type definitions for IntelliSense / autocomplete
+  in the editor.
+*/
 {
   "compilerOptions": {
     "target": "es6"

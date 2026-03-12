@@ -284,7 +284,7 @@ function draw() {
     if (hitCooldown > 0) hitCooldown--;
 
     // ── Compute shared scroll speed ────────
-    let gameSpeed = 8 + map(intensity, 0, MAX_INTENSITY, 0, 3);
+    let gameSpeed = 12 + map(intensity, 0, MAX_INTENSITY, 0, 3);
     if (shakeActive) gameSpeed *= 1.25; // speed up during shake for extra pressure
 
     // ── Update game objects ─────────────────

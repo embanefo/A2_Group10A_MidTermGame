@@ -304,7 +304,7 @@ function checkCollision() {
 
       if (shakeActive) {
         // During shake: every hit costs half a heart
-        hearts -= 0.5;
+        hearts -= 1;
         if (hearts <= 0) {
           state = "lose";
           return;

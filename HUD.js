@@ -32,21 +32,34 @@ class HUD {
     // ── Hearts display ───────────────────────
     textAlign(CENTER);
     textSize(28); // larger hearts
+
     for (let i = 0; i < 5; i++) {
-      if (hearts >= i + 1) {
-        // Full heart
+      if (i < hearts) {
+        //full heart
         fill(255, 50, 50);
         text("♥", 35 + i * 35, 48);
-      } else if (hearts >= i + 0.5) {
-        // Half heart
-        fill(255, 100, 100);
-        text("♡", 35 + i * 35, 48);
       } else {
-        // Empty heart
+        //empty heart
         fill(100);
-        text("♡", 35 + i * 35, 48);
+        text("♥", 35 + i * 35, 48);
       }
     }
+
+    //for (let i = 0; i < 5; i++) {
+    //if (hearts >= i + 1) {
+    // Full heart
+    //fill(255, 50, 50);
+    //text("♥", 35 + i * 35, 48);
+    // } else if (hearts >= i + 0.5) {
+    // Half heart
+    // fill(255, 100, 100);
+    // text("♡", 35 + i * 35, 48);
+    //} else {
+    // Empty heart
+    //fill(100);
+    // text("♡", 35 + i * 35, 48);
+    //}
+    //}
     textSize(14); // reset to default
     textAlign(LEFT);
 

@@ -52,6 +52,7 @@ let raindrops = []; // rain particles (active during shake)
 
 // ── Game-state variables ─────────────────────
 let state = "start";
+let startScreen = "title";
 
 let player;
 let spikeManager;
@@ -81,6 +82,7 @@ function preload() {
 // ── p5 setup ─────────────────────────────────
 function setup() {
   createCanvas(CANVAS_W, CANVAS_H);
+  frameRate(60);
 
   player = new Player();
   spikeManager = new SpikeManager();
@@ -112,6 +114,8 @@ function resetGame() {
 
   bgX = 0;
   raindrops = [];
+
+  startScreen = "title";
 }
 
 // ── Main draw loop ────────────────────────────
@@ -156,23 +160,109 @@ function draw() {
   if (state === "start") {
     platformManager.draw();
     player.draw(false, imgPlayer);
-    textAlign(CENTER);
-    textSize(22);
-    fill(0);
-    text("Press ENTER to Start", width / 2, height / 2 - 10);
-    textSize(14);
-    fill(80);
-    text("SPACE — jump   |   R — restart", width / 2, height / 2 + 18);
-    text(
-      "Green platforms help you dodge floor spikes.",
-      width / 2,
-      height / 2 + 38,
-    );
-    text(
-      "Red hanging spikes are dangerous on platforms!",
-      width / 2,
-      height / 2 + 56,
-    );
+
+    // ── Title sub-screen ───────────────────
+    if (startScreen === "title") {
+      // Dark overlay
+      fill(0, 0, 0, 200);
+      rect(0, 0, width, height);
+
+      textAlign(CENTER);
+
+      // Game title
+      fill(255, 220, 50);
+      textSize(100);
+      textStyle(BOLD);
+      text("BPDash", width / 2, height / 2 + 10);
+
+      // Divider line
+      stroke(255, 255, 255, 80);
+      line(width / 2 - 120, height / 2 + 30, width / 2 + 120, height / 2 + 30);
+      noStroke();
+
+      // Prompts
+      fill(255);
+      textSize(16);
+      text("ENTER — Start Game", width / 2, height / 2 + 57);
+
+      fill(180);
+      textSize(13);
+      text("I — Instructions", width / 2, height / 2 + 80);
+    }
+
+    // ── Instructions sub-screen ────────────
+    if (startScreen === "instructions") {
+      // Dark overlay
+      fill(0, 0, 0, 200);
+      rect(0, 0, width, height);
+
+      textAlign(CENTER);
+
+      // Header
+      fill(255, 220, 50);
+      textSize(22);
+      textStyle(BOLD);
+      text("HOW TO PLAY", width / 2, 52);
+      textStyle(NORMAL);
+
+      // Divider
+      stroke(255, 255, 255, 60);
+      line(width / 2 - 140, 62, width / 2 + 140, 62);
+      noStroke();
+
+      // Controls
+      fill(160, 210, 255);
+      textSize(13);
+      text("CONTROLS", width / 2, 82);
+
+      fill(255);
+      textSize(13);
+      text(
+        "SPACE — Jump     |     R — Restart     |     DOUBLE SPACE - Double Jump",
+        width / 2,
+        100,
+      );
+
+      // Divider
+      stroke(255, 255, 255, 40);
+      line(width / 2 - 120, 112, width / 2 + 120, 112);
+      noStroke();
+
+      // Rules
+      fill(160, 210, 255);
+      textSize(13);
+      text("RULES", width / 2, 130);
+
+      fill(255);
+      textSize(12);
+      text("Dodge spikes by jumping over them.", width / 2, 150);
+
+      fill(255, 130, 130);
+      text(
+        "Red hanging spikes are dangerous when you're on a platform!",
+        width / 2,
+        186,
+      );
+
+      fill(255);
+      text("Clear 5 spikes in a row to activate a JUMP BOOST!", width / 2, 204);
+      text(
+        "If you hit a spike you enter SHAKE MODE! Clear 5 spikes to recover.",
+        width / 2,
+        222,
+      );
+      text(
+        "You have 5 hearts. Hit a spike and lose 1 heart. Reach 0 and it's game over.",
+        width / 2,
+        240,
+      );
+
+      // Back prompt
+      fill(180);
+      textSize(12);
+      text("B — Back to Title     |     ENTER — Start Game", width / 2, 270);
+    }
+
     return;
   }
 
@@ -298,26 +388,26 @@ function checkCollision() {
     }
 
     if (hit) {
-      s.scored = true;
+      //s.scored = true;
       hitCooldown = 15;
 
-      if (shakeActive) {
-        // During shake: every hit costs half a heart
-        hearts -= 0.5;
-        if (hearts <= 0) {
-          state = "lose";
-          return;
-        }
-      } else {
-        // Outside shake: count misses; 3 triggers shake and cancels boost
-        misses++;
-        if (misses >= 3) {
-          shakeActive = true;
-          shakeSuccess = 0;
-          boostActive = false;
-          boostTimer = 0;
-        }
+      //if (shakeActive) {
+      // During shake: every hit costs half a heart
+      hearts -= 1;
+      if (hearts <= 0) {
+        state = "lose";
+        return;
       }
+      //} else {
+      // Outside shake: count misses; 3 triggers shake and cancels boost
+      //misses++;
+      //if (misses >= 3) {
+      shakeActive = true;
+      shakeSuccess = 0;
+      boostActive = false;
+      boostTimer = 0;
+      //}
+      //}
 
       // Reset streak on any hit
       streak = 0;
@@ -374,8 +464,17 @@ function checkNearMiss() {
 
 // ── Key input ─────────────────────────────────
 function keyPressed() {
-  if (state === "start" && keyCode === ENTER) {
-    state = "play";
+  if (state === "start") {
+    if (keyCode === ENTER) {
+      startScreen = "title"; // reset for next time
+      state = "play";
+    }
+    if (key === "i" || key === "I") {
+      startScreen = "instructions";
+    }
+    if ((key === "b" || key === "B") && startScreen === "instructions") {
+      startScreen = "title";
+    }
   }
 
   if (state === "play" && key === " ") {

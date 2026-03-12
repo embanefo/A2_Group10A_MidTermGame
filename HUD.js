@@ -37,11 +37,11 @@ class HUD {
       if (i < hearts) {
         //full heart
         fill(255, 50, 50);
-        text("♥", 35 + i * 35, 48);
+        text("♥", 22 + i * 35, 55);
       } else {
         //empty heart
         fill(100);
-        text("♥", 35 + i * 35, 48);
+        text("♥", 22 + i * 35, 55);
       }
     }
 
@@ -64,27 +64,27 @@ class HUD {
     textAlign(LEFT);
 
     // ── Intensity bar ────────────────────────
-    fill(200);
-    rect(10, 55, 200, 12); // grey background track
-    fill(255, 80, 80);
-    rect(10, 55, map(intensity, 0, maxIntensity, 0, 200), 12); // red fill
+    //fill(200);
+    //rect(10, 55, 200, 12); // grey background track
+    //fill(255, 80, 80);
+    //rect(10, 55, map(intensity, 0, maxIntensity, 0, 200), 12); // red fill
 
     // ── Status line ──────────────────────────
     if (shakeActive) {
       fill(255, 60, 60);
-      text("DANGER — hearts draining! Clear 5 spikes to recover!", 10, 90);
+      text("DANGER — hearts draining! Clear 5 spikes to recover!", 10, 80);
     } else if (boostActive) {
       fill(255, 200, 0);
-      text("BOOST ACTIVE!", 10, 90);
+      text("BOOST ACTIVE!", 10, 80);
     } else {
       fill(0);
-      text("Streak: " + streak + " / 5 for boost", 10, 90);
+      text("Streak: " + streak + " / 5 for boost", 10, 80);
     }
 
     // ── Controls reminder ────────────────────
-    fill(120);
-    textSize(12);
-    text("SPACE — jump   |   R — restart", 10, 110);
-    textSize(14); // reset for next frame
+    //fill(120);
+    //textSize(12);
+    //text("SPACE — jump   |   R — restart", 10, 110);
+    //textSize(14); // reset for next frame
   }
 }

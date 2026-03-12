@@ -299,26 +299,26 @@ function checkCollision() {
     }
 
     if (hit) {
-      s.scored = true;
+      //s.scored = true;
       hitCooldown = 15;
 
-      if (shakeActive) {
-        // During shake: every hit costs half a heart
-        hearts -= 1;
-        if (hearts <= 0) {
-          state = "lose";
-          return;
-        }
-      } else {
-        // Outside shake: count misses; 3 triggers shake and cancels boost
-        misses++;
-        if (misses >= 3) {
-          shakeActive = true;
-          shakeSuccess = 0;
-          boostActive = false;
-          boostTimer = 0;
-        }
+      //if (shakeActive) {
+      // During shake: every hit costs half a heart
+      hearts -= 1;
+      if (hearts <= 0) {
+        state = "lose";
+        return;
       }
+      //} else {
+      // Outside shake: count misses; 3 triggers shake and cancels boost
+      //misses++;
+      //if (misses >= 3) {
+      shakeActive = true;
+      shakeSuccess = 0;
+      boostActive = false;
+      boostTimer = 0;
+      //}
+      //}
 
       // Reset streak on any hit
       streak = 0;

@@ -286,6 +286,7 @@ function draw() {
     // ── Compute shared scroll speed ────────
     let gameSpeed = 12 + map(intensity, 0, MAX_INTENSITY, 0, 3);
     if (shakeActive) gameSpeed *= 1.25; // speed up during shake for extra pressure
+    // change this back to 8 after showcase
 
     // ── Update game objects ─────────────────
     player.update(intensity, MAX_INTENSITY, platformManager.platforms);

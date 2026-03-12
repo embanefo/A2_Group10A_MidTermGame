@@ -29,7 +29,7 @@
 */
 
 // ── Canvas ───────────────────────────────────
-const CANVAS_W = screen.width;
+const CANVAS_W = 900;
 const CANVAS_H = 300;
 
 // ── World heights (edit here to rebalance) ───

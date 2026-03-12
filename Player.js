@@ -98,10 +98,8 @@ class Player {
   // Falls back to a blue rectangle if no image provided.
   draw(boostActive, img) {
     if (img) {
-      if (boostActive) tint(255, 200, 0);
-      else noTint();
-      image(img, this.x, this.y - 20, 70, 70);
       noTint();
+      image(img, this.x, this.y - 20, 70, 70);
     } else {
       noStroke();
       fill(boostActive ? color(255, 200, 0) : color(30, 120, 255));

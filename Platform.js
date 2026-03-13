@@ -18,12 +18,12 @@ class Platform {
   }
 
   draw() {
-    fill(80, 160, 80); // green — change colour here
+    fill(222, 153, 182); // #DE99B6 pink
     noStroke();
     rect(this.x, this.y, this.w, this.h, 4);
 
     // Subtle top highlight so it reads as a surface
-    fill(120, 210, 120);
+    fill(235, 200, 220);
     rect(this.x + 4, this.y, this.w - 8, 3, 2);
   }
 }

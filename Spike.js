@@ -52,8 +52,8 @@ class Spike {
         this.y + this.h, // bottom-right
       );
     } else {
-      // Red triangle, tip pointing DOWN — hangs from above
-      fill(200, 40, 40);
+      // Dark blue triangle, tip pointing DOWN — hangs from above
+      fill(2, 21, 28); // #02151C
       triangle(
         this.x,
         this.y, // top-left

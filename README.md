@@ -49,11 +49,10 @@ Post-Showcase: Planned Improvements
 
 Based on feedback and observations during the showcase, the following improvements are planned for the next iteration.
 
--- Add character animation and polish.
-Introduce animations for the player character’s movement and reactions (e.g., when jumping or hitting obstacles) to make gameplay feel more responsive and engaging.
+-- Add polished character storyline and reactions. Introduce animations for the player character’s reactions(e.g., when jumping or hitting obstacles) to make gameplay feel more responsive and engaging, and use obstacle elements to convey cohesive storyline.
 
 -- Refine game progression and pacing.
-Improve the end-of-level transition and progression system by adding clearer level completion screens and pacing adjustments, including increasing game speed over time to maintain challenge.
+Improve the end-of-level transition and progression system by adding clearer level completion screens, pacing adjustments- including increasing game speed over time, and introducing a character-split mechanism- were the screen splits and a mirrored would and character appears to maintain challenge.
 
 ---
 

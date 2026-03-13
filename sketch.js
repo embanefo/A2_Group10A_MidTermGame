@@ -46,7 +46,9 @@ const BOOST_DURATION = 200; // frames
 
 // ── Asset variables ───────────────────────────
 let imgBg;
-let imgPlayer;
+let imgIdle; // pixil-gif-drawing (2).gif — before ENTER
+let imgRun; // pixil-gif-drawing (1).gif — playing/moving
+let imgBoost; // pixil-gif-drawing.gif     — boost mode
 let bgX = 0; // scrolling background x offset
 let raindrops = []; // rain particles (active during shake)
 
@@ -76,7 +78,9 @@ let shakeSuccess = 0; // spikes cleared during shake (need 5 to recover)
 // ── p5 preload ────────────────────────────────
 function preload() {
   imgBg = loadImage("assets/10_17.png");
-  imgPlayer = loadImage("assets/ch.png");
+  imgIdle = loadImage("assets/standing-skin.gif");
+  imgRun = loadImage("assets/running-skin.gif");
+  imgBoost = loadImage("assets/booster-skin.gif");
 }
 
 // ── p5 setup ─────────────────────────────────
@@ -159,7 +163,7 @@ function draw() {
   // ── Start screen ──────────────────────────
   if (state === "start") {
     platformManager.draw();
-    player.draw(false, imgPlayer);
+    player.draw(false, imgIdle);
 
     // ── Title sub-screen ───────────────────
     if (startScreen === "title") {
@@ -173,7 +177,7 @@ function draw() {
       fill(255, 220, 50);
       textSize(100);
       textStyle(BOLD);
-      text("BPDash", width / 2, height / 2 + 10);
+      text("Between Floors", width / 2, height / 2 + 10);
 
       // Divider line
       stroke(255, 255, 255, 80);
@@ -239,7 +243,7 @@ function draw() {
 
       fill(255, 130, 130);
       text(
-        "Red hanging spikes are dangerous when you're on a platform!",
+        "Black hanging spikes are dangerous when you're on a platform!",
         width / 2,
         186,
       );
@@ -280,8 +284,9 @@ function draw() {
     if (hitCooldown > 0) hitCooldown--;
 
     // ── Compute shared scroll speed ────────
-    let gameSpeed = 4 + map(intensity, 0, MAX_INTENSITY, 0, 1);
+    let gameSpeed = 8 + map(intensity, 0, MAX_INTENSITY, 0, 3);
     if (shakeActive) gameSpeed *= 1.25; // speed up during shake for extra pressure
+    // change this back to 8 after showcase
 
     // ── Update game objects ─────────────────
     player.update(intensity, MAX_INTENSITY, platformManager.platforms);
@@ -298,7 +303,7 @@ function draw() {
     if (shakeActive) translate(random(-4, 4), random(-4, 4));
     platformManager.draw();
     spikeManager.draw(intensity, MAX_INTENSITY);
-    player.draw(boostActive, imgPlayer);
+    player.draw(boostActive, boostActive ? imgBoost : imgRun);
     pop();
 
     hud.draw(
@@ -316,7 +321,7 @@ function draw() {
   if (state === "lose") {
     platformManager.draw();
     spikeManager.draw(intensity, MAX_INTENSITY);
-    player.draw(false, imgPlayer);
+    player.draw(false, imgRun);
     fill(0, 0, 0, 120);
     rect(0, 0, width, height);
 
@@ -391,23 +396,20 @@ function checkCollision() {
       //s.scored = true;
       hitCooldown = 15;
 
-      //if (shakeActive) {
-      // During shake: every hit costs half a heart
-      hearts -= 1;
-      if (hearts <= 0) {
-        state = "lose";
-        return;
+      if (shakeActive) {
+        // During shake: every hit costs 1 heart
+        hearts -= 1;
+        if (hearts <= 0) {
+          state = "lose";
+          return;
+        }
+      } else {
+        // Outside shake: just trigger shake, no heart loss
+        shakeActive = true;
+        shakeSuccess = 0;
+        boostActive = false;
+        boostTimer = 0;
       }
-      //} else {
-      // Outside shake: count misses; 3 triggers shake and cancels boost
-      //misses++;
-      //if (misses >= 3) {
-      shakeActive = true;
-      shakeSuccess = 0;
-      boostActive = false;
-      boostTimer = 0;
-      //}
-      //}
 
       // Reset streak on any hit
       streak = 0;
